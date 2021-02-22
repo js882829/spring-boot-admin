@@ -1,5 +1,5 @@
 <!--
-  - Copyright 2014-2019 the original author or authors.
+  - Copyright 2014-2020 the original author or authors.
   -
   - Licensed under the Apache License, Version 2.0 (the "License");
   - you may not use this file except in compliance with the License.
@@ -105,40 +105,61 @@
 </template>
 
 <script>
-  import subscribing from '@/mixins/subscribing';
-  import Instance from '@/services/instance';
-  import {concatMap, timer} from '@/utils/rxjs';
-  import debounce from 'lodash/debounce';
-  import moment from 'moment';
-  import sbaTracesChart from './traces-chart';
-  import sbaTracesList from './traces-list';
-  import {VIEW_GROUP} from '../../index';
+import subscribing from '@/mixins/subscribing';
+import Instance from '@/services/instance';
+import {concatMap, timer} from '@/utils/rxjs';
+import debounce from 'lodash/debounce';
+import mapKeys from 'lodash/mapKeys';
+import moment from 'moment';
+import {VIEW_GROUP} from '../../index';
+import sbaTracesChart from './traces-chart';
+import sbaTracesList from './traces-list';
 
-  const addToFilter = (oldFilter, addedFilter) =>
+const addToFilter = (oldFilter, addedFilter) =>
     !oldFilter
       ? addedFilter
       : (val, key) => oldFilter(val, key) && addedFilter(val, key);
 
+  const normalize = (obj) => mapKeys(obj, (value, key) => key.toLowerCase());
+
   class Trace {
-    constructor({timestamp, ...trace}) {
+    constructor({timestamp, request, response, ...trace}) {
       Object.assign(this, trace);
       this.timestamp = moment(timestamp);
+      this.request = {...request, headers: normalize(request.headers)};
+      this.response = response ? {...response, headers: normalize(response.headers)} : null;
     }
 
     get key() {
       return `${this.timestamp.valueOf()}-${this.request.method}-${this.request.uri}`;
     }
 
-    get contentLength() {
-      const contentLength = this.response.headers['Content-Length'] && this.response.headers['Content-Length'][0];
+    get contentLengthResponse() {
+      return this.extractContentLength(this.response);
+    }
+
+    get contentLengthRequest() {
+      return this.extractContentLength(this.request);
+    }
+
+    extractContentLength(origin) {
+      const contentLength = origin && origin.headers['content-length'] && origin.headers['content-length'][0];
       if (contentLength && /^\d+$/.test(contentLength)) {
         return parseInt(contentLength);
       }
       return null;
     }
 
-    get contentType() {
-      const contentType = this.response.headers['Content-Type'] && this.response.headers['Content-Type'][0];
+    get contentTypeResponse() {
+      return this.extractContentType(this.response);
+    }
+
+    get contentTypeRequest() {
+      return this.extractContentType(this.request);
+    }
+
+    extractContentType(origin) {
+      const contentType = origin && origin.headers['content-type'] && origin.headers['content-type'][0];
       if (contentType) {
         const idx = contentType.indexOf(';');
         return idx >= 0 ? contentType.substring(0, idx) : contentType;
@@ -150,16 +171,20 @@
       return this.timestamp - other.timestamp;
     }
 
+    isPending() {
+      return !this.response;
+    }
+
     isSuccess() {
-      return this.response.status <= 399
+      return this.response && this.response.status <= 399
     }
 
     isClientError() {
-      return this.response.status >= 400 && this.response.status <= 499
+      return this.response && this.response.status >= 400 && this.response.status <= 499
     }
 
     isServerError() {
-      return this.response.status >= 500 && this.response.status <= 599
+      return this.response && this.response.status >= 500 && this.response.status <= 599
     }
   }
 

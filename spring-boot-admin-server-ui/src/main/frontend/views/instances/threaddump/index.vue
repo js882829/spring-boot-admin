@@ -51,7 +51,7 @@
   import Instance from '@/services/instance';
   import {concatMap, timer} from '@/utils/rxjs';
   import remove from 'lodash/remove';
-  import moment from 'moment-shortformat';
+  import moment from 'moment';
   import threadsList from './threads-list';
   import {VIEW_GROUP} from '../../index';
 
@@ -88,21 +88,22 @@
                 threadId: thread.threadId,
                 threadState: thread.threadState,
                 threadName: thread.threadName,
-                details: thread,
                 timeline: [{
                   start: now,
                   end: now,
+                  details: thread,
                   threadState: thread.threadState,
                 }]
               });
             } else {
               const entry = vm.threads[thread.threadId];
-              entry.details = thread;
               if (entry.threadState !== thread.threadState) {
                 entry.threadState = thread.threadState;
+                entry.timeline[entry.timeline.length - 1].end = now;
                 entry.timeline.push({
-                  start: entry.timeline[entry.timeline.length - 1].end,
+                  start: now,
                   end: now,
+                  details: thread,
                   threadState: thread.threadState,
                 });
               } else {
@@ -115,7 +116,6 @@
         terminatedThreads.forEach(threadId => {
           const entry = vm.threads[threadId];
           entry.threadState = 'TERMINATED';
-          entry.details = null;
           entry.timeline[entry.timeline.length - 1].end = now;
         });
       },

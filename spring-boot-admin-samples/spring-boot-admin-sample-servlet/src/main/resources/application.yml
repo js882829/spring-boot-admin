@@ -35,6 +35,8 @@ spring:
               environment: test
   jmx:
     enabled: true
+  main:
+    lazy-initialization: true
 ---
 
 # tag::customization-external-views[]
@@ -60,6 +62,18 @@ spring:
         resource-locations: file:@project.basedir@/../../spring-boot-admin-server-ui/target/dist/
         cache-templates: false
         extension-resource-locations: file:@project.basedir@/../spring-boot-admin-sample-custom-ui/target/dist/
+
+---
+
+# tag::customization-view-settings[]
+spring:
+  boot:
+    admin:
+      ui:
+        view-settings:
+          - name: "journal"
+            enabled: false
+# end::customization-view-settings[]
 
 ---
 spring:

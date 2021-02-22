@@ -56,6 +56,10 @@ pre.is-breakable {
   cursor: pointer;
 }
 
+.button > svg {
+  margin-right: 0.4em;
+}
+
 .button.is-icon {
   background: transparent;
   border-color: transparent;
@@ -139,9 +143,6 @@ path.domain {
     margin-right: auto;
   }
 }
-
-//animation
-@import "~@/assets/css/utilities";
 
 .fade-in-enter-active {
   animation: .5s fade-in forwards;

@@ -29,17 +29,9 @@
       <div class="navbar-menu" :class="{'is-active' : showMenu}">
         <div class="navbar-end">
           <template v-for="view in enabledViews">
-            <router-link
-              v-if="view.name"
-              :key="view.name"
-              :to="{name: view.name}"
-              class="navbar-item"
-            >
-              <component :is="view.handle" :applications="applications" :error="error" />
-            </router-link>
             <a
-              v-else
-              :key="view.href"
+              v-if="view.href"
+              :key="view.name"
               :href="view.href"
               class="navbar-item"
               target="_blank"
@@ -47,8 +39,15 @@
             >
               <component :is="view.handle" />
             </a>
+            <router-link
+              v-else
+              :key="view.name"
+              :to="{name: view.name}"
+              class="navbar-item"
+            >
+              <component :is="view.handle" :applications="applications" :error="error" />
+            </router-link>
           </template>
-
           <div class="navbar-item has-dropdown is-hoverable" v-if="userName">
             <a class="navbar-link">
               <font-awesome-icon icon="user-circle" size="lg" />&nbsp;<span v-text="userName" />
@@ -83,6 +82,7 @@
   import {compareBy} from '@/utils/collections';
   import {AVAILABLE_LANGUAGES} from '@/i18n';
   import moment from 'moment';
+  import isEmpty from 'lodash/isEmpty';
 
   const readCookie = (name) => {
     const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
@@ -132,7 +132,9 @@
       this.userName = sbaConfig.user ? sbaConfig.user.name : null;
       this.csrfToken = readCookie('XSRF-TOKEN');
       this.csrfParameterName = sbaConfig.csrf.parameterName;
-      this.availableLanguages = AVAILABLE_LANGUAGES;
+      this.availableLanguages = (isEmpty(sbaConfig.uiSettings.availableLanguages)) ?
+        AVAILABLE_LANGUAGES :
+        sbaConfig.uiSettings.availableLanguages.filter(language => AVAILABLE_LANGUAGES.includes(language))
       this.currentLanguage = this.$i18n.locale;
     },
     mounted() {

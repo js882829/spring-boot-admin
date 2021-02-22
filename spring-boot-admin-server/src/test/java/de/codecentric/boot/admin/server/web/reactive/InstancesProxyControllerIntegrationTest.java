@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,36 @@
 
 package de.codecentric.boot.admin.server.web.reactive;
 
-import de.codecentric.boot.admin.server.AdminReactiveApplicationTest;
-import de.codecentric.boot.admin.server.web.AbstractInstancesProxyControllerIntegrationTest;
-
 import javax.annotation.Nullable;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import de.codecentric.boot.admin.server.AdminReactiveApplicationTest;
+import de.codecentric.boot.admin.server.web.AbstractInstancesProxyControllerIntegrationTest;
+
 public class InstancesProxyControllerIntegrationTest extends AbstractInstancesProxyControllerIntegrationTest {
-    @Nullable
-    private static ConfigurableApplicationContext context;
 
-    @BeforeClass
-    public static void setUpContext() {
-        context = new SpringApplicationBuilder().sources(AdminReactiveApplicationTest.TestAdminApplication.class)
-                                                .web(WebApplicationType.REACTIVE)
-                                                .run(
-                                                    "--server.port=0",
-                                                    "--spring.boot.admin.monitor.default-timeout=2500"
-                                                );
-    }
+	@Nullable
+	private static ConfigurableApplicationContext context;
 
-    @Before
-    public void setUpClient() {
-        super.setUpClient(context);
-    }
+	@BeforeEach
+	public void setUpClient() {
+		context = new SpringApplicationBuilder().sources(AdminReactiveApplicationTest.TestAdminApplication.class)
+				.web(WebApplicationType.REACTIVE)
+				.run("--server.port=0", "--spring.boot.admin.monitor.default-timeout=2500");
 
-    @AfterClass
-    public static void tearDownContext() {
-        if (context != null) {
-            context.close();
-        }
-    }
+		super.setUpClient(context);
+	}
+
+	@AfterEach
+	public void tearDownContext() {
+		if (context != null) {
+			context.close();
+		}
+	}
+
 }

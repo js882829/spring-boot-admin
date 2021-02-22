@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,17 @@ package de.codecentric.boot.admin.server.cloud.discovery;
 
 import org.springframework.cloud.client.ServiceInstance;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static org.springframework.util.StringUtils.hasText;
 
 public class KubernetesServiceInstanceConverter extends DefaultServiceInstanceConverter {
 
-    @Override
-    protected String getManagementPort(ServiceInstance instance) {
-        String managementPort = instance.getMetadata().get("port.management");
-        if (!isEmpty(managementPort)) {
-            return managementPort;
-        }
-        return super.getManagementPort(instance);
-    }
+	@Override
+	protected int getManagementPort(ServiceInstance instance) {
+		String managementPort = instance.getMetadata().get("port.management");
+		if (hasText(managementPort)) {
+			return Integer.parseInt(managementPort);
+		}
+		return super.getManagementPort(instance);
+	}
+
 }
